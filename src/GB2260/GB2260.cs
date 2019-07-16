@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -19,33 +20,39 @@ namespace GB2260
             Provinces = new List<Division>();
             try
             {
-                var fileName = $"GB2260.{(int)revision}.tsv";
+                var source = revision.ToString().StartsWith("V") ? "stats" : "mca";
+                var fileName = $"GB2260.data._{source}.gz";
                 var assembly = typeof(Gb2260).GetTypeInfo().Assembly;
-                using(var stream = assembly.GetManifestResourceStream(fileName))
-                using (var textReader = new StreamReader(stream))
+                using(var resource = assembly.GetManifestResourceStream(fileName))
+                using (GZipStream decompressionStream = new GZipStream(resource, CompressionMode.Decompress))
                 {
-                    string line;
-                    while( (line = textReader.ReadLine()) != null )
+                    using (StreamReader textReader = new StreamReader(decompressionStream))
                     {
-                        var split = line.Split('\t');
-                        var code = split[2];
-                        var name = split[3];
-                        _data.Add(code, name);
-                        if (Regex.IsMatch(code, "^\\d{2}0{4}$"))
+                        while (!textReader.EndOfStream)
                         {
-                            var source = split[0];
-                            var intRevision = int.Parse(split[1]);
-                            var division = new Division
+                            var line = textReader.ReadLine();
+                            var split = line.Split('\t');
+                            var code = split[2];
+                            var name = split[3];
+                            _data.Add(code, name);
+                            if (Regex.IsMatch(code, "^\\d{2}0{4}$"))
                             {
-                                Source = source,
-                                Revision = (Revision)intRevision,
-                                Code = code,
-                                Name = name
-                            };
-                            Provinces.Add(division);
+                                var source = split[0];
+                                var intRevision = int.Parse(split[1]);
+                                var division = new Division
+                                {
+                                    Source = source,
+                                    Revision = (Revision)intRevision,
+                                    Code = code,
+                                    Name = name
+                                };
+                                Provinces.Add(division);
 
+                            }
                         }
+                            
                     }
+
                 }
             }
             catch (Exception)

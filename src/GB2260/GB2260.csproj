@@ -8,6 +8,6 @@
     <PackageId>GB2260.Core</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\data\stats\*.tsv" />
+    <EmbeddedResource Include="data\*.gz" />
   </ItemGroup>
 </Project>
