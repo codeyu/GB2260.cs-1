@@ -16,12 +16,13 @@ namespace GB2260
         public Gb2260(Revision revision = Revision.V201607)
         {
             Revision = revision;
+            var intRevision = int.Parse(revision.ToString().Remove(0, 1));
             _data = new Dictionary<string, string>();
             Provinces = new List<Division>();
             try
             {
-                var source = revision.ToString().StartsWith("V") ? "stats" : "mca";
-                var fileName = $"GB2260.data._{source}.gz";
+                var sourceName = revision.ToString().StartsWith("V") ? "stats" : "mca";
+                var fileName = $"GB2260.data._{sourceName}.gz";
                 var assembly = typeof(Gb2260).GetTypeInfo().Assembly;
                 using(var resource = assembly.GetManifestResourceStream(fileName))
                 using (GZipStream decompressionStream = new GZipStream(resource, CompressionMode.Decompress))
@@ -31,24 +32,32 @@ namespace GB2260
                         while (!textReader.EndOfStream)
                         {
                             var line = textReader.ReadLine();
-                            var split = line.Split('\t');
-                            var code = split[2];
-                            var name = split[3];
-                            _data.Add(code, name);
-                            if (Regex.IsMatch(code, "^\\d{2}0{4}$"))
+                            if(line.StartsWith(sourceName))
                             {
-                                var source = split[0];
-                                var intRevision = int.Parse(split[1]);
-                                var division = new Division
+                                var split = line.Split('\t');
+                                if(split[1] == $"{intRevision}")
                                 {
-                                    Source = source,
-                                    Revision = (Revision)intRevision,
-                                    Code = code,
-                                    Name = name
-                                };
-                                Provinces.Add(division);
+                                    var code = split[2];
+                                    var name = split[3];
+                                    _data.Add(code, name);
+                                    if (Regex.IsMatch(code, "^\\d{2}0{4}$"))
+                                    {
+                                        var source = split[0];
+                                        
+                                        var division = new Division
+                                        {
+                                            Source = source,
+                                            Revision = (Revision)intRevision,
+                                            Code = code,
+                                            Name = name
+                                        };
+                                        Provinces.Add(division);
 
+                                    }
+                                }
+                                
                             }
+                            
                         }
                             
                     }
