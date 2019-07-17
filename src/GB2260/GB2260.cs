@@ -41,12 +41,10 @@ namespace GB2260
                                     var name = split[3];
                                     _data.Add(code, name);
                                     if (Regex.IsMatch(code, "^\\d{2}0{4}$"))
-                                    {
-                                        var source = split[0];
-                                        
+                                    {                                        
                                         var division = new Division
                                         {
-                                            Source = source,
+                                            Source = sourceName,
                                             Revision = (Revision)intRevision,
                                             Code = code,
                                             Name = name

@@ -8,7 +8,6 @@ namespace GB2260
         public Revision Revision { get; set; }
         public string Province { get; set; }
         public string Prefecture { get; set; }
-
         public override string ToString()
         {
             return $"{Province ?? ""} {Prefecture ?? ""} {Name ?? ""}";
